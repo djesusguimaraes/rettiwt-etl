@@ -93,8 +93,6 @@ const TweetData = mongoose.model<TweetDoc, TweetModelInterface>(
   tweetSchema
 );
 
-tweetSchema.statics.build = (attr: ITweetData) => {
-  return new TweetData(attr);
-};
+tweetSchema.statics.build = (attr: ITweetData) => new TweetData(attr);
 
 export { TweetData, TweetDoc };
