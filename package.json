@@ -3,6 +3,8 @@
     "typescript": "^5.4.2"
   },
   "dependencies": {
+    "mongodb": "^6.5.0",
+    "mongoose": "^8.2.3",
     "rettiwt-api": "^2.6.2"
   }
 }
