@@ -1,6 +1,7 @@
 import { CursoredData, Rettiwt, Tweet } from "rettiwt-api";
 import { Constants } from "./constants/constants";
-import { getApiKey, getProxyUrl } from "./utils/utils";
+import { Logs } from "./utils/logs";
+import { elapsed, getApiKey, getProxyUrl } from "./utils/utils";
 
 const language = "pt";
 const startDate = new Date("2016-01-01");
@@ -16,9 +17,16 @@ export const searchTweets = async (
   cursor: string | undefined
 ): Promise<CursoredData<Tweet>> => {
   try {
-    const rettiwt = new Rettiwt({ apiKey: getApiKey(), proxyUrl: getProxyUrl() });
+    const start = new Date().getTime();
 
-    return await rettiwt.tweet.search(
+    const proxyUrl = getProxyUrl();
+
+    const rettiwt = new Rettiwt({
+      apiKey: getApiKey(),
+      proxyUrl,
+    });
+
+    const data = await rettiwt.tweet.search(
       {
         includeWords,
         startDate,
@@ -27,8 +35,16 @@ export const searchTweets = async (
       Constants.TWEETS_PER_REQUEST,
       cursor
     );
+
+    Logs.search({
+      data,
+      proxyUrl,
+      duration: elapsed(start)
+    });
+
+    return data;
   } catch (error) {
-    console.log(`[ERRO]: ${error}`);
+    console.error(`[ERROR]: ${error}`);
     throw error;
   }
 };

@@ -9,15 +9,13 @@ export const loadData = async (
 ) => {
   try {
     await client.connect();
-    console.log("Connected to MongoDB successfully.");
 
     const db = client.db('tweets');
     const collection = db.collection(collectionName);
 
     const response = await collection.insertMany(data);
-    console.log(
-      `${response.insertedCount} CSV Data Successfully loaded to MongoDB.`
-    );
+
+    return response.insertedCount;
   } catch (error) {
     console.error("Error Connecting MongoDB", error);
   }

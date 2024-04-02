@@ -2,13 +2,8 @@ import fs from "node:fs";
 import { Constants } from "../constants/constants";
 
 const getProxyUrl = (): URL => {
-  const proxies = fs
-    .readFileSync(Constants.PROXIES_PATH)
-    .toString("utf-8")
-    .split("\n");
-
+  const proxies = getStringFromFile(Constants.PROXIES_PATH).split("\n");
   const proxy = proxies[Math.floor(Math.random() * proxies.length)];
-
   return new URL(proxy, "https://");
 };
 
@@ -23,6 +18,15 @@ const getCursor = (): string | undefined => {
   return cursor;
 };
 
+const saveCursor = (cursor: string) =>
+  fs.writeFileSync(Constants.CURSOR_PATH, cursor);
+
 const getStringFromFile = (path: string) => fs.readFileSync(path).toString();
 
-export { delay, getProxyUrl, getApiKey, getCursor };
+const elapsed = (beginning: number, log = false) => {
+  const duration = (new Date().getTime() - beginning) / 1000;
+  if (log) console.info(`${duration}s`);
+  return duration;
+};
+
+export { delay, getProxyUrl, getApiKey, getCursor, saveCursor, elapsed };

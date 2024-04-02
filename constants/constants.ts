@@ -1,9 +1,8 @@
 const buildAssetsPath = (file: string) => `assets/${file}`
 export class Constants {
   // SEARCH DATA
-  static readonly CURSOR = 'default';
-  static readonly TWEETS_PER_REQUEST = 2;
-  static readonly TWEETS_TARGET_NUMBER = 20;
+  static readonly TWEETS_PER_REQUEST = 20;
+  static readonly TWEETS_TARGET_NUMBER = 60;
   static readonly SEARCH_LIMIT =
     Math.ceil(this.TWEETS_TARGET_NUMBER / this.TWEETS_PER_REQUEST) - 1;
   static readonly PATIENCE = Math.ceil(this.SEARCH_LIMIT * 0.1);
