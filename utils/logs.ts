@@ -4,11 +4,11 @@ import { Constants } from "../constants/constants";
 class Logs {
   static init = (cursor: string | undefined) => {
     console.info(
-      `------------ Busca iniciada ---------------`,
-      `-------------------------------------------`,
-      `------------ Cursor Inicial ---------------`,
-      `${cursor?.substring(0, 40) ?? "Não definido"}...`,
-      `-------------------------------------------`
+      `------------ Busca iniciada ---------------\n`,
+      `-------------------------------------------\n`,
+      `------------ Cursor Inicial ---------------\n`,
+      `--------- ${cursor?.substring(0, 20)}... ---------\n`,
+      `----------------------------------------`
     );
     console.table({
       Iterações: Constants.SEARCH_LIMIT,
@@ -17,7 +17,13 @@ class Logs {
     });
   };
 
-  static iteration = (params: IterationLogParams) => {};
+  static iteration = (params: IterationLogParams) => {
+    console.table({
+      "Tweets Salvos": params.saved,
+      Época: params.epoch,
+      Elapsed: `${params.duration}s`,
+    });
+  };
 
   static search = (params: SearchLogParams) => {
     console.table({
@@ -36,9 +42,9 @@ interface SearchLogParams {
 }
 
 interface IterationLogParams {
-	epoch: number,
-	saved: number,
-	duration: number,
+  epoch: number;
+  saved: number;
+  duration: number;
 }
 
 export { Logs };

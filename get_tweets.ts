@@ -33,7 +33,7 @@ export const getTweets = async () => {
 
     const setCursor = () => {
       cursor = data.next.value;
-      if (["", undefined].some((e) => e === cursor)) return;
+      if (!cursor) return;
       saveCursor(cursor);
     };
 
@@ -60,8 +60,8 @@ const saveData = async (data: Tweet[]): Promise<number> => {
   let users: UserDoc[] = [];
 
   data.forEach((tweet) => {
-    tweets.push(TweetData.build({ ...tweet, tweetBy: tweet.tweetBy.id }));
-    users.push(UserData.build(tweet.tweetBy));
+    tweets.push(new TweetData({ ...tweet, tweetBy: tweet.tweetBy.id }));
+    users.push(new UserData(tweet.tweetBy));
   });
 
   const savedDocs = await Promise.all([

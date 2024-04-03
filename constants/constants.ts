@@ -2,7 +2,7 @@ const buildAssetsPath = (file: string) => `assets/${file}`
 export class Constants {
   // SEARCH DATA
   static readonly TWEETS_PER_REQUEST = 20;
-  static readonly TWEETS_TARGET_NUMBER = 60;
+  static readonly TWEETS_TARGET_NUMBER = 1000000;
   static readonly SEARCH_LIMIT =
     Math.ceil(this.TWEETS_TARGET_NUMBER / this.TWEETS_PER_REQUEST) - 1;
   static readonly PATIENCE = Math.ceil(this.SEARCH_LIMIT * 0.1);
@@ -16,4 +16,7 @@ export class Constants {
   static readonly API_KEY_PATH = buildAssetsPath('api_key.txt');
   static readonly PROXIES_PATH = buildAssetsPath('proxies.txt');
   static readonly CURSOR_PATH = buildAssetsPath('cursor.txt');
+
+  // URLS
+  static readonly PROXY_LIST_URL = "https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/all.txt"
 }

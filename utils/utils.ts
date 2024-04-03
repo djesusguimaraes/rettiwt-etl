@@ -1,11 +1,7 @@
 import fs from "node:fs";
 import { Constants } from "../constants/constants";
 
-const getProxyUrl = (): URL => {
-  const proxies = getStringFromFile(Constants.PROXIES_PATH).split("\n");
-  const proxy = proxies[Math.floor(Math.random() * proxies.length)];
-  return new URL(proxy, "https://");
-};
+
 
 const delay = async (ms: number) =>
   new Promise((resolve) => setTimeout(resolve, ms));
@@ -29,4 +25,4 @@ const elapsed = (beginning: number, log = false) => {
   return duration;
 };
 
-export { delay, getProxyUrl, getApiKey, getCursor, saveCursor, elapsed };
+export { delay, getApiKey, getCursor, saveCursor, elapsed, getStringFromFile };
