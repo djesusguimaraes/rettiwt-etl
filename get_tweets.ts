@@ -1,29 +1,38 @@
 import { isNumberObject } from "node:util/types";
-import { Tweet } from "rettiwt-api";
+import { Tweet, TweetFilter } from "rettiwt-api";
 import { Constants } from "./constants/constants";
 import { loadData } from "./load_data";
 import { TweetData, TweetDoc } from "./models/tweet_data";
 import { UserData, UserDoc } from "./models/user_data";
 import { searchTweets } from "./search_tweets";
-import { Logs } from "./utils/logs";
-import { delay, elapsed, getCursor, saveCursor } from "./utils/utils";
+import { Cursor, Logs, Util } from "./utils/utils";
 
-export const getTweets = async () => {
-  let cursor = getCursor();
+const language = "pt";
+const includeWords = ["urna", "urnas", "eleicoes"];
+
+const getTweets = async (params: GetTweetsParams) => {
+  let cursor = Cursor.get(params.id);
 
   Logs.init(cursor);
 
   let empty = 0;
   let saved = 0;
 
+  const query = <TweetFilter>{
+    language,
+    includeWords,
+    endDate: params.endDate,
+    startDate: params.startDate,
+  };
+
   for (let i = 0; i <= Constants.SEARCH_LIMIT; i++) {
     const start = new Date().getTime();
-    const data = await searchTweets(cursor);
-    await delay(2000);
+
+    const data = await searchTweets({ id: params.id, cursor, query });
 
     const endIteration = (replaceCursor = true) => {
       if (replaceCursor) setCursor();
-      const duration = elapsed(start);
+      const duration = Util.elapsed(start);
       Logs.iteration({
         epoch: i,
         saved,
@@ -33,8 +42,7 @@ export const getTweets = async () => {
 
     const setCursor = () => {
       cursor = data.next.value;
-      if (!cursor) return;
-      saveCursor(cursor);
+      if (cursor) Cursor.save(cursor, params.id);
     };
 
     if (data.list.length === 0) {
@@ -75,3 +83,11 @@ const saveData = async (data: Tweet[]): Promise<number> => {
 
   return savedDocs ?? 0;
 };
+
+interface GetTweetsParams {
+  id: string;
+  startDate: Date;
+  endDate: Date;
+}
+
+export { getTweets, GetTweetsParams };

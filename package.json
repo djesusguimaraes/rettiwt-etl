@@ -1,9 +1,11 @@
 {
   "devDependencies": {
+    "@types/async": "^3.2.24",
     "@types/node": "^20.11.30",
     "typescript": "^5.4.2"
   },
   "dependencies": {
+    "async": "^3.2.5",
     "mongodb": "^6.5.0",
     "mongoose": "^8.2.3",
     "rettiwt-api": "^2.6.2"
