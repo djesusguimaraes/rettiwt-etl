@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { Rettiwt } from "rettiwt-api";
 import { setInterval } from "timers/promises";
 import { Constants } from "../constants/constants";
 import { SearchResponse } from "../search_tweets";
@@ -11,6 +12,16 @@ class Util {
     const duration = (new Date().getTime() - beginning) / 1000;
     if (log) console.info(`${duration}s`);
     return duration;
+  };
+
+  static login = async () => {
+    const rttiwt = new Rettiwt();
+    const key = await rttiwt.auth.login(
+      "mail",
+      "username",
+      "password"
+    );
+    FileManager.write(key, Constants.API_KEY_PATH);
   };
 }
 
@@ -50,10 +61,24 @@ class Cursor {
 class Proxies {
   static values = FileManager.read(Constants.PROXIES_PATH);
 
-  static get = (): URL => {
-    const proxies = this.values.split(separator);
-    const proxy = proxies[Math.floor(Math.random() * proxies.length)];
-    return new URL(proxy);
+  static checkedProxies = FileManager.read(Constants.CHECKED_PROXIES_PATH);
+
+  static get = ({ switchToChecked = false }): URL => {
+    const resolveProvider = () => {
+      if (this.checkedProxies.length > 5 && switchToChecked) {
+        return this.checkedProxies;
+      }
+      return this.values;
+    };
+
+    const provider = resolveProvider();
+    const proxies = provider.split(separator).filter((e) => !!e);
+
+    const data = Array.from(Array(proxies.length).keys()).sort(() => Math.random() - 0.5);
+
+    const index = Math.floor(Math.random() * proxies.length);
+
+    return new URL(proxies[data[index]]);
   };
 
   static delete = (url: URL) => {
@@ -68,16 +93,28 @@ class Proxies {
     fs.writeFileSync(Constants.PROXIES_PATH, data);
   };
 
+  static confirm = (url: URL) => {
+    const proxy = url.toString().slice(0, -1);
+    if (this.checkedProxies.includes(proxy)) return;
+    fs.appendFileSync(Constants.CHECKED_PROXIES_PATH, proxy + separator);
+  };
+
   static update = async () => {
     const url = new URL(Constants.PROXY_LIST_URL);
     const data = await fetch(url).then(async (res) => await res.text());
 
     const proxies = data
       .split(separator)
-      .filter((proxy) => !proxy.includes("socks"))
+      .filter((proxy) => !proxy.includes("socks"));
+
+    fs.writeFileSync(Constants.PROXIES_PATH, proxies.join(separator));
+
+    const checked = this.checkedProxies
+      .split(separator)
+      .filter((proxy) => proxies.includes(proxy))
       .join(separator);
 
-    return fs.writeFileSync(Constants.PROXIES_PATH, proxies);
+    fs.writeFileSync(Constants.CHECKED_PROXIES_PATH, checked);
   };
 
   static updatePeriodcally = async () => {

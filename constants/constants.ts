@@ -15,6 +15,7 @@ export class Constants {
   // PATHS
   static readonly API_KEY_PATH = buildAssetsPath('api_key.txt');
   static readonly PROXIES_PATH = buildAssetsPath('proxies.txt');
+  static readonly CHECKED_PROXIES_PATH = buildAssetsPath('checked_proxies.txt');
   static readonly CURSOR_PATH = buildAssetsPath('cursor.txt');
 
   // URLS

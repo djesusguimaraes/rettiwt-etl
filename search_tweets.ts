@@ -6,19 +6,26 @@ export const searchTweets = async (
   params: SearchTweetParams,
   attempts = 0
 ): Promise<SearchResponse> => {
+  await Util.delay(3000);
+
   const start = new Date().getTime();
 
   const apiKey = FileManager.read(Constants.API_KEY_PATH);
-  const proxyUrl = Proxies.get();
+  const proxyUrl = Proxies.get({ switchToChecked: attempts % 5 === 0 });
 
   try {
     const rettiwt = new Rettiwt({ apiKey, proxyUrl });
 
-    const data = await rettiwt.tweet.search(
-      params.query,
-      Constants.TWEETS_PER_REQUEST,
-      params.cursor
-    );
+    const data = await rettiwt.tweet
+      .search(params.query, Constants.TWEETS_PER_REQUEST, params.cursor)
+      .catch(async (e) => {
+        if (e.toString().includes("Failed to authenticate")) {
+          await Util.login();
+        }
+        throw e;
+      });
+
+    Proxies.confirm(proxyUrl);
 
     const response = {
       id: params.id,
@@ -27,6 +34,7 @@ export const searchTweets = async (
       attempts,
       duration: Util.elapsed(start),
     };
+
     Logs.search(response);
 
     return response;
@@ -55,7 +63,7 @@ interface SearchResponse {
   data?: CursoredData<Tweet>;
   duration: number;
   proxyUrl: URL;
-  attempts: number,
+  attempts: number;
 }
 
 export { SearchResponse };

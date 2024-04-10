@@ -8,7 +8,7 @@ import { searchTweets } from "./search_tweets";
 import { Cursor, Logs, Util } from "./utils/utils";
 
 const language = "pt";
-const includeWords = ["urna", "urnas", "eleicoes"];
+const optionalWords = ["urna", "urnas eletronicas", "urnas"];
 
 const getTweets = async (params: GetTweetsParams) => {
   let cursor = Cursor.get(params.id);
@@ -20,12 +20,14 @@ const getTweets = async (params: GetTweetsParams) => {
 
   const query = <TweetFilter>{
     language,
-    includeWords,
+    optionalWords,
     endDate: params.endDate,
     startDate: params.startDate,
   };
 
   for (let i = 0; i <= Constants.SEARCH_LIMIT; i++) {
+    await Util.delay(3000);
+
     const start = new Date().getTime();
 
     const response = await searchTweets({ ...params, cursor, query });
