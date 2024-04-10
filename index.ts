@@ -1,6 +1,6 @@
 import { getTweets, GetTweetsParams } from "./get_tweets";
-import parallel from "async/parallel";
 import { Proxies } from "./utils/utils";
+import { parallel, reflect } from "async";
 
 const buildParams = (year: string) =>
   <GetTweetsParams>{
@@ -9,12 +9,8 @@ const buildParams = (year: string) =>
     startDate: new Date(`${year}-01-01`),
   };
 
-const getTweetsByYear = async (year: string) => {
-  await getTweets(buildParams(year));
-};
-
 const years = ["2017", "2018", "2019", "2020", "2021"];
 
-const tasks = years.map((year) => async () => await getTweetsByYear(year));
+const tasks = years.map((year) => reflect(() => getTweets(buildParams(year))));
 
 parallel([Proxies.updatePeriodcally, ...tasks]);

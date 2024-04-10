@@ -13,7 +13,7 @@ const includeWords = ["urna", "urnas", "eleicoes"];
 const getTweets = async (params: GetTweetsParams) => {
   let cursor = Cursor.get(params.id);
 
-  Logs.init(cursor);
+  Logs.init(params.id, cursor);
 
   let empty = 0;
   let saved = 0;
@@ -28,12 +28,15 @@ const getTweets = async (params: GetTweetsParams) => {
   for (let i = 0; i <= Constants.SEARCH_LIMIT; i++) {
     const start = new Date().getTime();
 
-    const data = await searchTweets({ id: params.id, cursor, query });
+    const response = await searchTweets({ ...params, cursor, query });
+
+    const tweets = response.data?.list ?? [];
 
     const endIteration = (replaceCursor = true) => {
       if (replaceCursor) setCursor();
       const duration = Util.elapsed(start);
       Logs.iteration({
+        id: params.id,
         epoch: i,
         saved,
         duration,
@@ -41,11 +44,11 @@ const getTweets = async (params: GetTweetsParams) => {
     };
 
     const setCursor = () => {
-      cursor = data.next.value;
+      cursor = response.data?.next.value;
       if (cursor) Cursor.save(cursor, params.id);
     };
 
-    if (data.list.length === 0) {
+    if (tweets.length === 0) {
       if (empty == Constants.PATIENCE) {
         endIteration(false);
         break;
@@ -56,7 +59,7 @@ const getTweets = async (params: GetTweetsParams) => {
       continue;
     }
 
-    const count = await saveData(data.list);
+    const count = await saveData(tweets);
     saved += count;
     empty = 0;
     endIteration();

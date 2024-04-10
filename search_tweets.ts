@@ -3,16 +3,16 @@ import { Constants } from "./constants/constants";
 import { Proxies, FileManager, Logs, Util } from "./utils/utils";
 
 export const searchTweets = async (
-  params: SearchTweetParams
-): Promise<CursoredData<Tweet>> => {
+  params: SearchTweetParams,
+  attempts = 0
+): Promise<SearchResponse> => {
   const start = new Date().getTime();
 
+  const apiKey = FileManager.read(Constants.API_KEY_PATH);
   const proxyUrl = Proxies.get();
+
   try {
-    const rettiwt = new Rettiwt({
-      apiKey: FileManager.read(Constants.API_KEY_PATH),
-      proxyUrl,
-    });
+    const rettiwt = new Rettiwt({ apiKey, proxyUrl });
 
     const data = await rettiwt.tweet.search(
       params.query,
@@ -20,24 +20,26 @@ export const searchTweets = async (
       params.cursor
     );
 
-    Logs.search({
+    const response = {
       id: params.id,
       data,
       proxyUrl,
+      attempts,
       duration: Util.elapsed(start),
-    });
+    };
+    Logs.search(response);
 
-    return data;
+    return response;
   } catch (error) {
-    const data = new CursoredData<Tweet>();
     Logs.search({
       id: params.id,
-      data,
+      error,
       proxyUrl,
+      attempts,
       duration: Util.elapsed(start),
     });
     Proxies.delete(proxyUrl);
-    return await searchTweets(params);
+    return await searchTweets(params, attempts + 1);
   }
 };
 
@@ -46,3 +48,14 @@ interface SearchTweetParams {
   cursor?: string | undefined;
   query: TweetFilter;
 }
+
+interface SearchResponse {
+  id: string;
+  error?: unknown;
+  data?: CursoredData<Tweet>;
+  duration: number;
+  proxyUrl: URL;
+  attempts: number,
+}
+
+export { SearchResponse };

@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import { setInterval } from "timers/promises";
-import { CursoredData, Tweet } from "rettiwt-api";
 import { Constants } from "../constants/constants";
+import { SearchResponse } from "../search_tweets";
 
 class Util {
   static delay = async (ms: number) =>
@@ -77,12 +77,12 @@ class Proxies {
       .filter((proxy) => !proxy.includes("socks"))
       .join(separator);
 
-    fs.writeFileSync(Constants.PROXIES_PATH, proxies);
+    return fs.writeFileSync(Constants.PROXIES_PATH, proxies);
   };
 
   static updatePeriodcally = async () => {
     for await (const _ of setInterval(5 * 60000)) {
-      this.update().finally(Logs.proxiesUpdatedAt);
+      await this.update().then(Logs.proxiesUpdatedAt);
     }
   };
 }
@@ -90,15 +90,10 @@ class Proxies {
 const separator = "\n";
 
 class Logs {
-  static init = (cursor: string | undefined) => {
-    console.info(
-      `------------ Busca iniciada ---------------\n`,
-      `-------------------------------------------\n`,
-      `------------ Cursor Inicial ---------------\n`,
-      `--------- ${cursor?.substring(0, 20)}... ---------\n`,
-      `----------------------------------------`
-    );
+  static init = (id: string, cursor: string | undefined) => {
     console.table({
+      Id: id,
+      Cursor: cursor,
       Iterações: Constants.SEARCH_LIMIT,
       Objetivo: Constants.TWEETS_TARGET_NUMBER,
       Paciência: Constants.PATIENCE,
@@ -107,22 +102,25 @@ class Logs {
 
   static iteration = (params: IterationLogParams) => {
     console.table({
+      Search: params.id,
       "Tweets Salvos": params.saved,
       Época: params.epoch,
       Elapsed: `${params.duration}s`,
     });
   };
 
-  static search = (params: SearchLogParams) => {
-    if (params.error) {
-      console.error(`\n[ERROR]: ${params.error}`);
-      return;
-    }
-
-    console.table({
+  static search = (params: SearchResponse) => {
+    const data = {
+      Search: params.id,
+      Attempts: params.attempts,
       Elapsed: `${params.duration}s`,
       "Proxy Server": params.proxyUrl.toString(),
-    });
+      Tweets: params.data?.list.length ?? 0,
+      "Has Next": !!params.data?.next.value,
+      ERROR: params.error?.toString() ?? "None",
+    };
+
+    return console.table(data);
   };
 
   static proxiesUpdatedAt = () => {
@@ -140,15 +138,8 @@ class Logs {
   };
 }
 
-interface SearchLogParams {
-  id: string,
-  error?: unknown;
-  data?: CursoredData<Tweet>;
-  duration: number;
-  proxyUrl: URL;
-}
-
 interface IterationLogParams {
+  id: string;
   epoch: number;
   saved: number;
   duration: number;
